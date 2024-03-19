@@ -1,0 +1,10 @@
+<h1>Search Results for "<%= @query %>"</h1>
+
+<% if @parks.any? %>
+  <% @parks.each do |park| %>
+    <p><%= park.name %></p>
+    <!-- Add more details about the park as needed -->
+  <% end %>
+<% else %>
+  <p>No parks found for your search query.</p>
+<% end %>

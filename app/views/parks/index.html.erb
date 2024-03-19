@@ -1,0 +1,16 @@
+<!-- app/views/parks/index.html.erb -->
+<h1>Parks</h1>
+
+<!-- Search Form -->
+<%= form_with(url: '/search', method: 'get') do %>
+  <%= text_field_tag(:q, params[:q], placeholder: "Search parks...") %>
+  <%= submit_tag("Search") %>
+<% end %>
+
+<!-- List of Parks -->
+<ul>
+  <% @parks.each do |park| %>
+    <li><%= link_to park.name, park %></li>
+    <!-- Display other attributes of the parks as needed -->
+  <% end %>
+</ul>
