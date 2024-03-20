@@ -2,6 +2,7 @@ source "https://rubygems.org"
 
 ruby "3.3.0"
 
+gem 'kaminari'
 
 gem 'faker', '~> 2.18', group: :development
 

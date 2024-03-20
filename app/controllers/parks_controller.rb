@@ -1,4 +1,7 @@
 # app/controllers/parks_controller.rb
+require 'net/http'
+require 'json'
+
 class ParksController < ApplicationController
     before_action :set_park, only: [:show]
   
@@ -17,9 +20,18 @@ class ParksController < ApplicationController
     end
 
     def index
-        @parks = Park.all # or whatever logic you use to fetch parks
-      end
+        @categories = Category.all
+        @parks = Park.all
+        uri = URI('https://data.winnipeg.ca/resource/tx3d-pfxq.json')
+        response = Net::HTTP.get(uri)
+        @park_data = JSON.parse(response)
   
+        @parks = Park.page(params[:page]).per(10) # Fetch parks with pagination
+        @parks = @parks.where(category_id: params[:category_id]) if params[:category_id].present?
+  end
+
+  
+
     private
     # Use callbacks to share common setup or constraints between actions.
     def set_park

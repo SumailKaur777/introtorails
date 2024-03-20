@@ -1,62 +1,63 @@
-# This file should ensure the existence of records required to run the application in every environment (production,
-# development, test). The code here should be idempotent so that it can be executed at any point in every environment.
-# The data can then be loaded with the bin/rails db:seed command (or created alongside the database with db:setup).
-#
-# Example:
-#
-#   ["Action", "Comedy", "Drama", "Horror"].each do |genre_name|
-#     MovieGenre.find_or_create_by!(name: genre_name)
-#   end
-# db/seeds.rb
 require 'json'
 require 'open-uri'
 require 'faker'
 
 # Pull data from Winnipeg Open Data API
 url = 'https://data.winnipeg.ca/resource/tx3d-pfxq.json'
+park_data = JSON.parse(URI.open(url).read)
 
-begin
-  park_data = JSON.parse(URI.open(url).read)
+# Destroy existing parks and categories
+Park.destroy_all
+Category.destroy_all
 
-  # Seed Parks
-  park_data.each do |park|
-    new_park = Park.create(
+# Seed Parks
+park_data.each do |park|
+  existing_park = Park.find_by(name: park['park_name'])
+  unless existing_park
+    Park.create!(
       name: park['park_name'],
-      address: park['park_address'],
-      latitude: park['latitude'].to_f,
-      longitude: park['longitude'].to_f,
-      size: park['park_size'],
-      amenities: park['amenities']
+      location_description: park['location_description'],
+      park_category: park['park_category'],
+      district: park['district'],
+      classification_type: park['classification_type'],
+      neighbourhood: park['neighbourhood'],
+      latitude: park['location']['latitude'].to_f,
+      longitude: park['location']['longitude'].to_f,
+      address: park['location']['human_address'],
+      amenities: park['location']['human_address'],
+      size: 0
     )
-
-    # Generate fake events, activities, and facilities for each park
-    3.times do
-      new_park.events.create(
-        name: Faker::Lorem.sentence,
-        date: Faker::Date.between(from: Date.today, to: 1.year.from_now),
-        time: Faker::Time.between(from: Time.now, to: Time.now + 1.week, format: :default),
-        capacity: Faker::Number.between(from: 10, to: 100)
-      )
-    end
-
-    3.times do
-      new_park.activities.create(
-        name: Faker::Lorem.word,
-        description: Faker::Lorem.paragraph,
-        duration: Faker::Number.between(from: 30, to: 180)
-      )
-    end
-
-    3.times do
-      new_park.facilities.create(
-        name: Faker::Lorem.word,
-        description: Faker::Lorem.sentence,
-        capacity: Faker::Number.between(from: 1, to: 100)
-      )
-    end
   end
-rescue Errno::ENOENT => e
-  puts "Error: #{e.message}. Make sure the URL is correct and the file is accessible."
-rescue JSON::ParserError => e
-  puts "Error parsing JSON: #{e.message}. Make sure the data retrieved is in valid JSON format."
 end
+
+puts "Parks populated successfully."
+
+# Define categories
+locations = ["282 Niverville Ave", "1804 & 1820 Henderson Hwy", "546 Sherburn St", "23 Dickson Cres"]
+neighbourhoods = ["Downtown", "West", "East", "North", "South"]
+classification_types = ["Community", "Neighbourhood", "Linkage", "District D", "District E"]
+districts = ["East", "West", "North", "South"]
+park_categories = ["Playground", "Recreational Area", "Nature Reserve", "Picnic Area", "Dog Park"]
+
+# Seed Categories
+locations.each do |location|
+  Category.create!(name: location)
+end
+
+neighbourhoods.each do |neighbourhood|
+  Category.create!(name: neighbourhood)
+end
+
+classification_types.each do |classification|
+  Category.create!(name: classification)
+end
+
+districts.each do |district|
+  Category.create!(name: district)
+end
+
+park_categories.each do |category|
+  Category.create!(name: category)
+end
+
+puts "Categories seeded successfully."
